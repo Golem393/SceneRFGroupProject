@@ -177,6 +177,7 @@ def main(
             accelerator='ddp',
         )
     print(data_module)
+    print(root)
     trainer.fit(model, data_module)
     # trainer.validate(model, data_module)
 
