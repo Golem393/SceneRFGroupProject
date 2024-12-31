@@ -176,7 +176,7 @@ def main(
             flush_logs_every_n_steps=100,
             accelerator='ddp',
         )
-
+    print(data_module)
     trainer.fit(model, data_module)
     # trainer.validate(model, data_module)
 
