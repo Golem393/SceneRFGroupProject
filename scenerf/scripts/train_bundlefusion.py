@@ -95,6 +95,8 @@ def main(
         root=root,
         batch_size=int(bs / n_gpus),
         num_workers=int(n_workers_per_gpu),
+        train_frame_interval= frame_interval,
+        val_frame_interval= frame_interval,
     )
 
     print(exp_name)
@@ -176,8 +178,6 @@ def main(
             flush_logs_every_n_steps=100,
             accelerator='ddp',
         )
-    print(data_module)
-    print(root)
     trainer.fit(model, data_module)
     # trainer.validate(model, data_module)
 
