@@ -138,40 +138,52 @@ class BundlefusionDataset(Dataset):
         idx = np.arange(self.n_frames + 1)
         idx = np.delete(idx, infer_id)
         n_sources = min(len(idx), self.n_sources)
+
+
         for d_id in range(n_sources):
             if self.n_sources < len(rel_frame_ids):
-                source_id = np.random.choice(idx, 1)[0]
+                source_id_candidates = idx.tolist()
             else:
-                source_id = idx[d_id]
+                source_id_candidates = [idx[d_id]]
 
-            rel_frame_id = rel_frame_ids[source_id]
-            source_frame_ids.append(rel_frame_id)
-            target_id = source_id - 1
-            
-            img_source_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[source_id]))
-            img_target_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[target_id]))
-            img_source = self.to_tensor(self.read_rgb(img_source_path))
-            img_target = self.to_tensor(self.read_rgb(img_target_path))
-            img_sources.append(img_source)
-            img_targets.append(img_target)
+            for attempt in range(len(source_id_candidates)):  # Retry with different candidates
+                try:
+                    source_id = np.random.choice(source_id_candidates) if self.n_sources < len(rel_frame_ids) else source_id_candidates[attempt]
+                    rel_frame_id = rel_frame_ids[source_id]
+                    source_frame_ids.append(rel_frame_id)
+                    target_id = source_id - 1
+
+                    source_pose_path = os.path.join(self.root, sequence, "frame-{}.pose.txt".format(rel_frame_ids[source_id]))
+                    target_pose_path = os.path.join(self.root, sequence, "frame-{}.pose.txt".format(rel_frame_ids[target_id]))
+
+                    infer_pose = self.read_pose(infer_pose_path)
+                    source_pose = self.read_pose(source_pose_path)
+                    target_pose = self.read_pose(target_pose_path)
+
+                    T_source2infer = np.linalg.inv(infer_pose) @ source_pose
+                    T_source2infers.append(torch.from_numpy(T_source2infer).float())
+                    T_source2target = np.linalg.inv(target_pose) @ source_pose
+                    T_source2targets.append(torch.from_numpy(T_source2target).float())
+
+                    img_source_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[source_id]))
+                    img_target_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[target_id]))
+                    img_source = self.to_tensor(self.read_rgb(img_source_path))
+                    img_target = self.to_tensor(self.read_rgb(img_target_path))
+                    img_sources.append(img_source)
+                    img_targets.append(img_target)
 
 
-            source_pose_path = os.path.join(self.root, sequence, "frame-{}.pose.txt".format(rel_frame_ids[source_id]))
-            target_pose_path = os.path.join(self.root, sequence, "frame-{}.pose.txt".format(rel_frame_ids[target_id]))
 
-            infer_pose = self.read_pose(infer_pose_path)      
-            source_pose = self.read_pose(source_pose_path)
-            target_pose = self.read_pose(target_pose_path)
-            
-
-            T_source2infer = np.linalg.inv(infer_pose) @ source_pose
-            T_source2infers.append(torch.from_numpy(T_source2infer).float())
-            T_source2target = np.linalg.inv(target_pose) @ source_pose
-            T_source2targets.append(torch.from_numpy(T_source2target).float())
-            
-            source_depth_path = os.path.join(self.root, sequence, "frame-{}.depth.png".format(rel_frame_ids[source_id]))
-            source_depth = self._read_depth(source_depth_path)
-            source_depths.append(source_depth)
+                    source_depth_path = os.path.join(self.root, sequence, "frame-{}.depth.png".format(rel_frame_ids[source_id]))
+                    source_depth = self._read_depth(source_depth_path)
+                    source_depths.append(source_depth)
+                    break
+                except np.linalg.LinAlgError:
+                    print(
+                        f"Singular matrix encountered for source_id {source_id} at index {index}. Retrying with another frame...")
+                    if attempt == len(source_id_candidates) - 1:
+                        print(f"All retries failed for d_id {d_id} at index {index}. Skipping this source.")
+                        break
           
         data = {
             "sequence": sequence,
