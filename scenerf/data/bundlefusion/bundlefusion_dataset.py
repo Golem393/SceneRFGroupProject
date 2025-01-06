@@ -218,7 +218,6 @@ class BundlefusionDataset(Dataset):
         :param calib_path: Path to a calibration text file.
         :return: dict with calibration matrices.
         """
-        print(path)
         with open(path, "r") as f:
             for line in f.readlines():
                 if line == "\n":
