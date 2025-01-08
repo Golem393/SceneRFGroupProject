@@ -102,7 +102,6 @@ def main(root, bs, n_gpus, n_workers_per_gpu, recon_save_dir, max_distance, step
 
             step = initial_step
 
-            print("step: ", initial_step)
             rel_poses = sample_rel_poses_bf(angle, max_distance, step)
             parts_missing = False
             for (step, angle), rel_pose in tqdm(rel_poses.items()):
