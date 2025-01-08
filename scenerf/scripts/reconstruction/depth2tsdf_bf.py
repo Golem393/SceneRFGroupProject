@@ -99,7 +99,7 @@ def main(root, bs, n_gpus, n_workers_per_gpu, recon_save_dir, max_distance, step
 
             tsdf_vol = fusion.TSDFVolume(vol_bnds, voxel_size=voxel_size, trunc_margin=10)
 
-            print(step)
+            print("step: ", step)
             rel_poses = sample_rel_poses_bf(angle, max_distance, step)
             parts_missing = False
             for (step, angle), rel_pose in tqdm(rel_poses.items()):
