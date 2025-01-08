@@ -81,6 +81,8 @@ def main(eval_save_dir):
         
         
         rendered_rgb_path = os.path.join(render_rgb_save_dir, filename)
+        if not os.path.exists(rendered_rgb_paths):
+            continue
         
         rgb = Image.open(rgb_path).convert("RGB")
         rgb = np.array(rgb, dtype=np.float32, copy=False) / 255.0
