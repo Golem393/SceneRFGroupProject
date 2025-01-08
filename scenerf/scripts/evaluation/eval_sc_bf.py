@@ -90,8 +90,10 @@ def main(root, bs, n_gpus, n_workers_per_gpu, model_name, recon_save_dir):
                 target = data["occ"]
             
             tsdf_save_dir = os.path.join(recon_save_dir, "tsdf", sequence)
-            os.makedirs(tsdf_save_dir, exist_ok=True)
             tsdf_save_filepath = os.path.join(tsdf_save_dir, "{}.pkl".format(frame_id))
+            if not os.path.exists(tsdf_save_filepath):
+                continue
+            os.makedirs(tsdf_save_dir, exist_ok=True)
 
 
             with open(tsdf_save_filepath, "rb") as f:
