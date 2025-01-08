@@ -103,7 +103,7 @@ def main(root, bs, n_gpus, n_workers_per_gpu, recon_save_dir, max_distance, step
             rel_poses = sample_rel_poses_bf(angle, max_distance, step)
             parts_missing = False
             for (step, angle), rel_pose in tqdm(rel_poses.items()):
-                
+                print(step)
                 T_source2infer = rel_pose
 
                 depth_save_dir = os.path.join(recon_save_dir, "depth", sequence)
