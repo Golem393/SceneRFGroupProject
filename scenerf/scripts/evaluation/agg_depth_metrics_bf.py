@@ -26,7 +26,6 @@ def main(
         batch_size=int(bs / n_gpus),
         num_workers=int(n_workers_per_gpu),
     )
-    print(root)
     data_module.setup_val_ds()
     data_loader = data_module.val_dataloader()
 
@@ -45,7 +44,8 @@ def main(
             save_dir = os.path.join("{}/depth_metrics".format(eval_save_dir), sequence)
 
             save_filepath = os.path.join(save_dir,"{}.npy".format(frame_id))
-
+            if not os.path.exists(save_filepath):
+                continue
             with open(save_filepath, "rb") as handle:
                 data = pickle.load(handle)
             depth_errors = data["depth_errors"]
