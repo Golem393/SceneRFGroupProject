@@ -101,6 +101,7 @@ def main(root, bs, n_gpus, n_workers_per_gpu, recon_save_dir, max_distance, step
 
 
             rel_poses = sample_rel_poses_bf(angle, max_distance, step)
+            parts_missing = False
             for (step, angle), rel_pose in tqdm(rel_poses.items()):
                 
                 T_source2infer = rel_pose
@@ -112,16 +113,19 @@ def main(root, bs, n_gpus, n_workers_per_gpu, recon_save_dir, max_distance, step
                 depth_filepath = os.path.join(depth_save_dir,"{}_{:.2f}_{:.2f}.npy".format(frame_id, step, angle))
                 render_rgb_filepath = os.path.join(render_rgb_save_dir, "{}_{:.2f}_{:.2f}.png".format(frame_id, step, angle))
                 if not os.path.exists(depth_filepath):
-                    continue
+                    parts_missing = True
+                    break
                 if not os.path.exists(render_rgb_filepath):
-                    continue
+                    parts_missing = True
+                    break
 
 
                 depth = np.load(depth_filepath)
                 rgb = read_rgb(render_rgb_filepath) * 255
                 
                 tsdf_vol.integrate(rgb, depth, cam_K, T_source2infer, obs_weight=1.)
-           
+            if parts_missing:
+                continue
             verts, faces, norms, colors = tsdf_vol.get_mesh()
             tsdf_grid, _ = tsdf_vol.get_volume() 
 
