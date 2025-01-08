@@ -26,6 +26,7 @@ def main(
         batch_size=int(bs / n_gpus),
         num_workers=int(n_workers_per_gpu),
     )
+    print(root)
     data_module.setup_val_ds()
     data_loader = data_module.val_dataloader()
 
@@ -40,7 +41,6 @@ def main(
             
             frame_id = batch['frame_id'][i]
             sequence = batch['sequence'][i]
-            print(eval_save_dir)
             
             save_dir = os.path.join("{}/depth_metrics".format(eval_save_dir), sequence)
 
