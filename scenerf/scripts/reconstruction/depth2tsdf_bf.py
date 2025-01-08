@@ -108,8 +108,14 @@ def main(root, bs, n_gpus, n_workers_per_gpu, recon_save_dir, max_distance, step
                 depth_save_dir = os.path.join(recon_save_dir, "depth", sequence)
                 render_rgb_save_dir = os.path.join(recon_save_dir, "render_rgb", sequence)
 
+
                 depth_filepath = os.path.join(depth_save_dir,"{}_{:.2f}_{:.2f}.npy".format(frame_id, step, angle))
                 render_rgb_filepath = os.path.join(render_rgb_save_dir, "{}_{:.2f}_{:.2f}.png".format(frame_id, step, angle))
+                if not os.path.exists(depth_filepath):
+                    continue
+                if not os.path.exists(render_rgb_filepath):
+                    continue
+
 
                 depth = np.load(depth_filepath)
                 rgb = read_rgb(render_rgb_filepath) * 255
