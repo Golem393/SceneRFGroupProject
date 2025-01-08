@@ -81,7 +81,7 @@ def main(eval_save_dir):
         
         
         rendered_rgb_path = os.path.join(render_rgb_save_dir, filename)
-        if not os.path.exists(rendered_rgb_paths):
+        if not os.path.exists(rendered_rgb_path):
             continue
         
         rgb = Image.open(rgb_path).convert("RGB")
