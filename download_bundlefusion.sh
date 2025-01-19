@@ -6,6 +6,6 @@ wget https://graphics.stanford.edu/projects/bundlefusion/data/apt1/apt1.zip
 wget https://graphics.stanford.edu/projects/bundlefusion/data/apt2/apt2.zip
 wget https://graphics.stanford.edu/projects/bundlefusion/data/copyroom/copyroom.zip
 wget https://graphics.stanford.edu/projects/bundlefusion/data/office0/office0.zip
-wget https://graphics.stanford.edu/projects/bundlefusion/data/office0/office1.zip
-wget https://graphics.stanford.edu/projects/bundlefusion/data/office0/office2.zip
-wget https://graphics.stanford.edu/projects/bundlefusion/data/office0/office3.zip
+wget https://graphics.stanford.edu/projects/bundlefusion/data/office1/office1.zip
+wget https://graphics.stanford.edu/projects/bundlefusion/data/office2/office2.zip
+wget https://graphics.stanford.edu/projects/bundlefusion/data/office3/office3.zip
