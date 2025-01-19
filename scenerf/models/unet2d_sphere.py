@@ -120,8 +120,6 @@ class DecoderSphere(nn.Module):
         self.conv2 = nn.Conv2d(
             bottleneck_features, features, kernel_size=1, stride=1, padding=1
         )
-        self.self_attention = SelfAttention(embed_dim=features, num_heads=4) 
-        
         self.out_feature_1_1 = out_feature
         self.out_feature_1_2 = out_feature
         self.out_feature_1_4 = out_feature
@@ -281,9 +279,13 @@ class UNet2DSphere(nn.Module):
             out_img_W=out_img_W,
             out_img_H=out_img_H
         )
+        self.self_attention = SelfAttention(embed_dim=num_features, num_heads=4)
 
     def forward(self, x, pix, pix_sphere):
         encoded_feats = self.encoder(x)
+        bottleneck_feature = encoded_feats[-1]
+        bottleneck_feature_with_attention = self.self_attention(bottleneck_feature)
+        encoded_feats[-1] = bottleneck_feature_with_attention
         unet_out = self.decoder(encoded_feats, pix, pix_sphere)
         return unet_out
 
