@@ -95,6 +95,9 @@ def main(
         root=root,
         batch_size=int(bs / n_gpus),
         num_workers=int(n_workers_per_gpu),
+        train_frame_interval= frame_interval,
+        val_frame_interval= frame_interval,
+
     )
 
     print(exp_name)
