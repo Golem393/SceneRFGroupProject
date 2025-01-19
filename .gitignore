@@ -30,3 +30,6 @@ venv/
 
 # Dataset directory and all its subdirectories
 dataset/
+
+# Logs directory
+logs/
