@@ -11,9 +11,9 @@ class SelfAttention(nn.Module):
         self.multihead_attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
         self.norm = nn.LayerNorm(embed_dim)
         self.ffn = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim * 4),
+            nn.Linear(embed_dim, embed_dim * 2),
             nn.ReLU(),
-            nn.Linear(embed_dim * 4, embed_dim),
+            nn.Linear(embed_dim * 2, embed_dim),
         )
 
     def forward(self, x):
@@ -40,7 +40,7 @@ class BasicBlockWithAttention(nn.Module):
             nn.Conv2d(channel_num, channel_num, 3, padding=dilations[1], dilation=dilations[1]),
             nn.BatchNorm2d(channel_num),
         )
-        self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=2)
+        self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=4)
         self.lrelu = nn.LeakyReLU()
 
     def forward(self, x):
@@ -85,9 +85,9 @@ class UpSampleBN(nn.Module):
         self._net = nn.Sequential(
             nn.Conv2d(skip_input, output_features,
                       kernel_size=3, stride=1, padding=1),
-            BasicBlockWithAttention(output_features, dilations=[1, 1]),
-            BasicBlockWithAttention(output_features, dilations=[2, 2]),
-            BasicBlockWithAttention(output_features, dilations=[3, 3]),
+            BasicBlock(output_features, dilations=[1, 1]),
+            BasicBlock(output_features, dilations=[2, 2]),
+            BasicBlock(output_features, dilations=[3, 3]),
         )
 
     def forward(self, x, concat_with):
@@ -120,7 +120,8 @@ class DecoderSphere(nn.Module):
         self.conv2 = nn.Conv2d(
             bottleneck_features, features, kernel_size=1, stride=1, padding=1
         )
-
+        self.self_attention = SelfAttention(embed_dim=features, num_heads=4) 
+        
         self.out_feature_1_1 = out_feature
         self.out_feature_1_2 = out_feature
         self.out_feature_1_4 = out_feature
