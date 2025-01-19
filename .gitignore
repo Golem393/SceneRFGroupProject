@@ -24,3 +24,9 @@ venv/
 
 # MacOS system files
 .DS_Store
+
+# All .zip files
+*.zip
+
+# Dataset directory and all its subdirectories
+dataset/
