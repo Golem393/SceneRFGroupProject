@@ -40,7 +40,7 @@ class BasicBlockWithAttention(nn.Module):
             nn.Conv2d(channel_num, channel_num, 3, padding=dilations[1], dilation=dilations[1]),
             nn.BatchNorm2d(channel_num),
         )
-        self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=4)
+        self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=2)
         self.lrelu = nn.LeakyReLU()
 
     def forward(self, x):
