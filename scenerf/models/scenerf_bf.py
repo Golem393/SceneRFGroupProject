@@ -614,6 +614,7 @@ class SceneRF(pl.LightningModule):
             # x_sphere, 
             batch_sampled_pixels,
             cam_K, inv_K):
+        hierarchical_sampling = True
         depths = []
         ret = {}
         n_rays = batch_sampled_pixels.shape[0]
@@ -629,7 +630,7 @@ class SceneRF(pl.LightningModule):
             self.img_size,
             sampling_method="uniform",
             sampled_pixels=batch_sampled_pixels,
-            n_pts_per_ray=n_pts_uni,
+            n_pts_per_ray=n_pts_uni / 2,
             max_sample_depth=self.max_sample_depth)
 
         gaussian_means_sensor_distance, gaussian_stds_sensor_distance = self.predict_gaussian_means_and_stds(
@@ -649,39 +650,64 @@ class SceneRF(pl.LightningModule):
             gaussian_stds_sensor_distance=gaussian_stds_sensor_distance,
             n_gaussians=self.n_gaussians, n_pts_per_gaussian=self.n_pts_per_gaussian,
             max_sample_depth=self.max_sample_depth)
+        weights_temp = None
+        for iteration in range(2 if hierarchical_sampling else 1):
+            if hierarchical_sampling and iteration == 0:
+                cam_pts = cam_pts_uni
+                depth_volume = depth_volume_uni
+                sensor_distance = sensor_distance_uni
+            if hierarchical_sampling and iteration == 1:
+                cam_pts_hier, depth_volume_hier, sensor_distance_hier, viewdir = sample_rays_viewdir(
+                    inv_K, T_source2infer,
+                    self.img_size,
+                    sampling_method="uniform",
+                    sampled_pixels=batch_sampled_pixels,
+                    n_pts_per_ray=n_pts_uni / 2,
+                    max_sample_depth=self.max_sample_depth,
+                    weights=weights_temp)
+                cam_pts = torch.cat([cam_pts_uni, cam_pts_gauss, cam_pts_hier],
+                                    dim=1)  # n_rays, n_pts 3
+                depth_volume = torch.cat([depth_volume_uni, depth_volume_gauss, depth_volume_hier],
+                                         dim=1)
+                sensor_distance = torch.cat([sensor_distance_uni, sensor_distance_gauss, sensor_distance_hier],
+                                            dim=1)
+            else:
+                if self.n_pts_uni > 0:
+                    cam_pts = torch.cat([cam_pts_uni, cam_pts_gauss],
+                                        dim=1)  # n_rays, n_pts 3
+                    depth_volume = torch.cat(
+                        [depth_volume_uni, depth_volume_gauss], dim=1)  # n_rays, n_pts
+                    sensor_distance = torch.cat(
+                        [sensor_distance_uni, sensor_distance_gauss], dim=1)  # n_rays, n_pts
+                elif self.n_pts_per_gaussian == 1:
+                    cam_pts = cam_pts_uni
+                    depth_volume = depth_volume_uni
+                    sensor_distance = sensor_distance_uni
+                else:
+                    cam_pts = cam_pts_gauss
+                    depth_volume = depth_volume_gauss
+                    sensor_distance = sensor_distance_gauss
 
-        if self.n_pts_uni > 0:  
-            cam_pts = torch.cat([cam_pts_uni, cam_pts_gauss],
-                                dim=1)  # n_rays, n_pts 3
-            depth_volume = torch.cat(
-                [depth_volume_uni, depth_volume_gauss], dim=1)  # n_rays, n_pts
-            sensor_distance = torch.cat(
-                [sensor_distance_uni, sensor_distance_gauss], dim=1)  # n_rays, n_pts
-        elif self.n_pts_per_gaussian == 1:
-            cam_pts = cam_pts_uni
-            depth_volume = depth_volume_uni
-            sensor_distance = sensor_distance_uni
-        else:
-            cam_pts = cam_pts_gauss
-            depth_volume = depth_volume_gauss
-            sensor_distance = sensor_distance_gauss
+            sorted_indices = torch.argsort(sensor_distance, dim=1)
+            sensor_distance = torch.gather(
+                sensor_distance, dim=1, index=sorted_indices)  # n_rays, n_pts
+            depth_volume = torch.gather(
+                depth_volume, dim=1, index=sorted_indices)  # n_rays, n_pts
+            cam_pts = torch.gather(
+                cam_pts, dim=1, index=sorted_indices.unsqueeze(-1).expand(-1, -1, 3))
 
-        sorted_indices = torch.argsort(sensor_distance, dim=1)
-        sensor_distance = torch.gather(
-            sensor_distance, dim=1, index=sorted_indices)  # n_rays, n_pts
-        depth_volume = torch.gather(
-            depth_volume, dim=1, index=sorted_indices)  # n_rays, n_pts
-        cam_pts = torch.gather(
-            cam_pts, dim=1, index=sorted_indices.unsqueeze(-1).expand(-1, -1, 3))
+            density, colors = self.predict(mlp=self.mlp,
+                                           cam_pts=cam_pts.detach(),
+                                           viewdir=viewdir,
+                                           x_rgb=x_rgb,
+                                           cam_K=cam_K)
 
-        density, colors = self.predict(mlp=self.mlp, 
-                                       cam_pts=cam_pts.detach(),
-                                       viewdir=viewdir,
-                                       x_rgb=x_rgb, 
-                                       cam_K=cam_K)
-        rendered_out = self.render_depth_and_color(
-            density, sensor_distance, depth_volume,
-            colors=colors) 
+            rendered_out = self.render_depth_and_color(
+                density, sensor_distance, depth_volume,
+                colors=colors)
+            if hierarchical_sampling and iteration == 0:
+                weights_temp = rendered_out['weights']
+
 
         depths = rendered_out['depth_rendered']
         colors = rendered_out['color']
