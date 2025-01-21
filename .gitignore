@@ -33,3 +33,6 @@ dataset/
 
 # Logs directory
 logs/
+
+# Recon Dir
+evaluation/recon
