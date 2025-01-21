@@ -614,7 +614,7 @@ class SceneRF(pl.LightningModule):
             # x_sphere, 
             batch_sampled_pixels,
             cam_K, inv_K):
-        hierarchical_sampling = False
+        hierarchical_sampling = True
         depths = []
         ret = {}
         n_rays = batch_sampled_pixels.shape[0]
