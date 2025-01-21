@@ -689,6 +689,8 @@ class SceneRF(pl.LightningModule):
                     depth_volume = depth_volume_gauss
                     sensor_distance = sensor_distance_gauss
 
+            print(cam_pts)
+
             sorted_indices = torch.argsort(sensor_distance, dim=1)
             sensor_distance = torch.gather(
                 sensor_distance, dim=1, index=sorted_indices)  # n_rays, n_pts
