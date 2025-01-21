@@ -630,7 +630,7 @@ class SceneRF(pl.LightningModule):
             self.img_size,
             sampling_method="uniform",
             sampled_pixels=batch_sampled_pixels,
-            n_pts_per_ray=n_pts_uni / 2,
+            n_pts_per_ray=n_pts_uni // 2,
             max_sample_depth=self.max_sample_depth)
 
         gaussian_means_sensor_distance, gaussian_stds_sensor_distance = self.predict_gaussian_means_and_stds(
@@ -662,7 +662,7 @@ class SceneRF(pl.LightningModule):
                     self.img_size,
                     sampling_method="uniform",
                     sampled_pixels=batch_sampled_pixels,
-                    n_pts_per_ray=n_pts_uni / 2,
+                    n_pts_per_ray=n_pts_uni // 2,
                     max_sample_depth=self.max_sample_depth,
                     weights=weights_temp)
                 cam_pts = torch.cat([cam_pts_uni, cam_pts_gauss, cam_pts_hier],
