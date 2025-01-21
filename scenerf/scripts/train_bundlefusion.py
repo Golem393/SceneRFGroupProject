@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 @click.option('--n_pts_per_gaussian', default=8, help='number of points sampled for each gaussian')
 @click.option('--n_gaussians', default=4, help='number of gaussians')
 @click.option('--n_pts_uni', default=32, help='number of points sampled uniformly')
+@click.option('--n_pts_hier', default=32, help='number of points sampled hierarchically')
 @click.option('--std', default=0.1, help='std of each gaussian')
 
 @click.option('--add_fov_hor', default=14, help='angle added to left and right of the horizontal FOV')
@@ -66,7 +67,7 @@ def main(
         n_rays, sample_grid_size,
         smooth_loss_weight,
         max_sample_depth, eval_depth,
-        n_pts_uni,
+        n_pts_uni, n_pts_hier,
         n_pts_per_gaussian, n_gaussians, std, som_sigma,
         add_fov_hor, add_fov_ver,
         use_color, use_reprojection,
@@ -107,6 +108,7 @@ def main(
     model = SceneRF(
         lr=lr,
         n_pts_uni=n_pts_uni,
+        n_pts_hier=n_pts_hier,
         weight_decay=wd,
         n_rays=n_rays,
         smooth_loss_weight=smooth_loss_weight,
