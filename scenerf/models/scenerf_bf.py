@@ -37,7 +37,7 @@ class SceneRF(pl.LightningModule):
             eval_depth=10,
             std=0.2,
             n_gaussians=4,
-            n_pts_uni=32,
+            n_pts_uni=42,
             n_pts_per_gaussian=8,
             smooth_loss_weight=0,
             sampling_method="uniform",
@@ -63,6 +63,7 @@ class SceneRF(pl.LightningModule):
         self.smooth_loss_weight = smooth_loss_weight
 
         self.n_pts_uni = n_pts_uni
+        print(n_pts_uni)
         self.n_gaussians = n_gaussians
         self.n_pts_per_gaussian = n_pts_per_gaussian
         self.std = std
@@ -630,7 +631,7 @@ class SceneRF(pl.LightningModule):
             self.img_size,
             sampling_method="uniform",
             sampled_pixels=batch_sampled_pixels,
-            n_pts_per_ray=n_pts_uni // 2,
+            n_pts_per_ray=n_pts_uni // 3,
             max_sample_depth=self.max_sample_depth)
 
         gaussian_means_sensor_distance, gaussian_stds_sensor_distance = self.predict_gaussian_means_and_stds(
@@ -652,13 +653,15 @@ class SceneRF(pl.LightningModule):
             max_sample_depth=self.max_sample_depth)
         weights_temp = None
         rendered_out = None
+        cam_pts = None
+        depth_volume = None
+        sensor_distance = None
         
         for iteration in range(2 if hierarchical_sampling else 1):
             if hierarchical_sampling and iteration == 0:
                 cam_pts = cam_pts_uni
                 depth_volume = depth_volume_uni
                 sensor_distance = sensor_distance_uni
-                print("weights1")
 
             if hierarchical_sampling and iteration == 1:
                 cam_pts_hier, depth_volume_hier, sensor_distance_hier, viewdir = sample_rays_viewdir(
@@ -666,7 +669,7 @@ class SceneRF(pl.LightningModule):
                     self.img_size,
                     sampling_method="uniform",
                     sampled_pixels=batch_sampled_pixels,
-                    n_pts_per_ray=n_pts_uni // 2,
+                    n_pts_per_ray=2 * (n_pts_uni // 3),
                     max_sample_depth=self.max_sample_depth,
                     weights=weights_temp)
                 cam_pts = torch.cat([cam_pts_uni, cam_pts_gauss, cam_pts_hier],
@@ -675,7 +678,6 @@ class SceneRF(pl.LightningModule):
                                          dim=1)
                 sensor_distance = torch.cat([sensor_distance_uni, sensor_distance_gauss, sensor_distance_hier],
                                             dim=1)
-                print("weights2")
             else:
                 if self.n_pts_uni > 0:
                     cam_pts = torch.cat([cam_pts_uni, cam_pts_gauss],
