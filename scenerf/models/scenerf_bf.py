@@ -716,7 +716,8 @@ class SceneRF(pl.LightningModule):
             rendered_out = self.render_depth_and_color(
                 density, sensor_distance, depth_volume,
                 colors=colors)
-            if hierarchical_sampling and iteration == 0:
+            if sample_phase == "coarse":
+                print("weights saved")
                 weights_temp = rendered_out['weights']
 
         depths = rendered_out['depth_rendered']
