@@ -37,7 +37,7 @@ class SceneRF(pl.LightningModule):
             eval_depth=10,
             std=0.2,
             n_gaussians=4,
-            n_pts_uni=42,
+            n_pts_uni=32,
             n_pts_per_gaussian=8,
             smooth_loss_weight=0,
             sampling_method="uniform",
