@@ -708,7 +708,6 @@ class SceneRF(pl.LightningModule):
                 colors=colors)
             if hierarchical_sampling and iteration == 0:
                 weights_temp = rendered_out['weights']
-        print(rendered_out)
 
 
         depths = rendered_out['depth_rendered']
