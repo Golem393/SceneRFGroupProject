@@ -651,6 +651,7 @@ class SceneRF(pl.LightningModule):
             n_gaussians=self.n_gaussians, n_pts_per_gaussian=self.n_pts_per_gaussian,
             max_sample_depth=self.max_sample_depth)
         weights_temp = None
+        rendered_out = None
         for iteration in range(2 if hierarchical_sampling else 1):
             if hierarchical_sampling and iteration == 0:
                 cam_pts = cam_pts_uni
