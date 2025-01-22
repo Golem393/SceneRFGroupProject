@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set environment variables
-export BF_ROOT=/root/SceneRFGroupProject/dataset/bundlefusion
+export BF_ROOT=/root/dataset/bundlefusion
 export BF_LOG=/root/SceneRFGroupProject/logs/monoscene2/bundlefusion
 export EVAL_SAVE_DIR=/root/SceneRFGroupProject/evaluation/eval
 export RECON_SAVE_DIR=/root/SceneRFGroupProject/evaluation/recon

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set environment variables
-export BF_ROOT=/root/SceneRFGroupProject/dataset/bundlefusion
+export BF_ROOT=/root/dataset/bundlefusion
 export BF_LOG=/root/SceneRFGroupProject/logs/monoscene2/bundlefusion
 
 # Run the training script
