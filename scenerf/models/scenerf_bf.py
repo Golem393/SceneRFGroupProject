@@ -644,13 +644,11 @@ class SceneRF(pl.LightningModule):
 
         for sample_phase in sample_phases:
             if sample_phase == "coarse":
-                print("coarse: ", self.n_pts_uni)
                 cam_pts = cam_pts_uni
                 depth_volume = depth_volume_uni
                 sensor_distance = sensor_distance_uni
 
             elif sample_phase == "fine":
-                print("fine: ", self.n_pts_hier)
                 cam_pts_hier, depth_volume_hier, sensor_distance_hier, viewdir = sample_rays_viewdir(
                     inv_K, T_source2infer,
                     self.img_size,
@@ -700,7 +698,6 @@ class SceneRF(pl.LightningModule):
                 density, sensor_distance, depth_volume,
                 colors=colors)
             if sample_phase == "coarse":
-                print("weights saved")
                 weights_temp = rendered_out['weights']
 
         depths = rendered_out['depth_rendered']

@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 @click.option('--som_sigma', default=0.02, help='sigma parameter for SOM')
 @click.option('--net_2d', default="b7", help='')
 
-@click.option('--max_epochs', default=50, help='max training epochs')
+@click.option('--max_epochs', default=30, help='max training epochs')
 @click.option('--use_color', default=True, help='use color loss')
 @click.option('--use_reprojection', default=True, help='use reprojection loss')
 

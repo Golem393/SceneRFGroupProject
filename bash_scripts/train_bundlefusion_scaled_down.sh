@@ -22,4 +22,5 @@ python scenerf/scripts/train_bundlefusion.py --bs=1 --n_gpus=1 --n_workers_per_g
     --sphere_w=640 \
     --max_sample_depth=8 \
     --n_frames=16 \
-    --frame_interval=2
+    --frame_interval=2 \
+    --max_epochs=30
