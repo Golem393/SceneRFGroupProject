@@ -38,20 +38,28 @@ class RFFEncoding(torch.nn.Module):
         :return: Encoded tensor of shape (batch_size, d_out)
         """
         # Compute the projection: 2 * pi * (x @ freqs) + biases
-        # print("x shape is ", x.shape)
-        # print("freqs shape is ", self._freqs.shape)
-        # print(self._freqs)
-        # print("freqs number is ", self.num_freqs)
+        print("x shape is ", x.shape)
+        print("freqs shape is ", self._freqs.shape)
+        print(self._freqs)
+        print("freqs number is ", self.num_freqs)
 
         # Compute the projection: x @ freqs + biases
-        projected = torch.matmul(x, self._freqs) + self._biases  # Shape: [64, 12]
-        # print("projected shape is ", projected.shape)
+        # Expand the input to match the number of frequencies
+        embed = x.unsqueeze(1).repeat(1, self.num_freqs, 1)  # Shape: [64, 12, 3]
+        print("embed size ", embed.shape)
+        print("embed is ", embed)
+
+        # Combine with frequencies and biases
+        projected = torch.addcmul(self._biases.unsqueeze(0), embed, self._freqs.unsqueeze(0))  # Shape: [64, 12, 3]
+        print("projected shape is ", projected.shape)
+        print(projected)
+
+
         # Compute cosine embeddings with sqrt(2) scaling
-        cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)  # Shape: [64, 12]
+        cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)  # Shape: [64, 12, 3]
 
         # Reshape to [batch_size, d_in * num_freqs]
-        cos_enc = cos_enc.unsqueeze(-1).expand(-1, -1, self.d_in)  # Shape: [64, 12, 3]
-        cos_enc = cos_enc.reshape(x.shape[0], -1)  # Shape: [64, 36]
+        cos_enc = cos_enc.view(x.shape[0], -1)  # Shape: [64, 36]
 
         # Include the raw input if specified
         if self.include_input:
