@@ -48,9 +48,12 @@ class RFFEncoding(torch.nn.Module):
         embed = x.unsqueeze(1).repeat(1, self.num_freqs, 1)  # Shape: [64, 12, 3]
         print("embed size ", embed.shape)
         print("embed is ", embed)
-        print("freq unsquize " , self._freqs.unsqueeze(0))
         # Combine with frequencies and biases
-        projected = torch.addcmul(self._biases.unsqueeze(0), embed, self._freqs.unsqueeze(0))  # Shape: [64, 12, 3]
+
+        # Transpose frequencies to match the shape of embed
+        freqs = self._freqs.unsqueeze(0).transpose(1, 2)  # Shape: [1, 12, 3]
+
+        projected = torch.addcmul(self._biases.unsqueeze(0), embed, freqs)  # Shape: [64, 12, 3]
         print("projected shape is ", projected.shape)
         print(projected)
 
