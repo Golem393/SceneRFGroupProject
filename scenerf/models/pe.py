@@ -23,7 +23,7 @@ class RFFEncoding(torch.nn.Module):
         # Randomly sample frequencies w' ~ N(0, sigma^2)
         freqs = 2 * np.pi * torch.randn(d_in, self.num_freqs) * sigma
         self.register_buffer("_freqs", freqs)
-        print("freqs shape is ",freqs.shape)
+        # print("freqs shape is ",freqs.shape)
 
         # Randomly sample biases b' ~ U[0, 2pi]
         biases = 2 * np.pi * torch.rand(self.num_freqs)
