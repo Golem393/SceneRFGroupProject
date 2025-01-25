@@ -4,50 +4,60 @@ Code taken from https://github.com/sxyu/pixel-nerf/blob/91a044bdd62aebe0ed3a5685
 import torch
 import numpy as np
 
-
-class PositionalEncoding(torch.nn.Module):
+class RFFEncoding(torch.nn.Module):
     """
-    Implement NeRF's positional encoding
+    Implementation of Random Fourier Features (RFF) encoding with random frequencies and biases.
     """
 
-    def __init__(self, num_freqs=6, d_in=3, freq_factor=np.pi, include_input=True):
+    def __init__(self, num_freqs=6, d_in=3, sigma=1.0, include_input=True):
         super().__init__()
+        # instead of D we have 2D 
+        num_freqs = 2 * num_freqs
         self.num_freqs = num_freqs
         self.d_in = d_in
-        self.freqs = freq_factor * 2.0 ** torch.arange(0, num_freqs)
-        self.d_out = self.num_freqs * 2 * d_in
         self.include_input = include_input
+        # Output dimensions:  (cos) per frequency for each input dimension
+        self.d_out = d_in * (self.num_freqs) 
         if include_input:
             self.d_out += d_in
-        # f1 f1 f2 f2 ... to multiply x by
-        self.register_buffer(
-            "_freqs", torch.repeat_interleave(self.freqs, 2).view(1, -1, 1)
-        )
-        # 0 pi/2 0 pi/2 ... so that
-        # (sin(x + _phases[0]), sin(x + _phases[1]) ...) = (sin(x), cos(x)...)
-        _phases = torch.zeros(2 * self.num_freqs)
-        _phases[1::2] = np.pi * 0.5
-        self.register_buffer("_phases", _phases.view(1, -1, 1))
+
+        # Randomly sample frequencies w' ~ N(0, sigma^2)
+        freqs = torch.randn(d_in, self.num_freqs) * sigma
+        self.register_buffer("_freqs", freqs)
+
+        # Randomly sample biases b' ~ U[0, 2pi]
+        biases = 2 * np.pi * torch.rand(num_freqs)
+        self.register_buffer("_biases", biases)
+
+        
 
     def forward(self, x):
         """
-        Apply positional encoding (new implementation)
-        :param x (batch, self.d_in)
-        :return (batch, self.d_out)
+        Apply RFF encoding.
+        :param x: Input tensor of shape (batch_size, d_in)
+        :return: Encoded tensor of shape (batch_size, d_out)
         """
-        embed = x.unsqueeze(1).repeat(1, self.num_freqs * 2, 1)
-        embed = torch.sin(torch.addcmul(self._phases, embed, self._freqs))
-        embed = embed.view(x.shape[0], -1)
-        if self.include_input:
-            embed = torch.cat((x, embed), dim=-1)
-        return embed
+        # Compute the projection: 2 * pi * (x @ freqs.T) + biases
+        projected = 2 * np.pi * torch.matmul(x, self._freqs.t()) + self._biases  # Shape: (batch_size, 2D)
 
+        # Compute  cosine embeddings
+        cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)
+      
+        encoding = cos_enc.view(x.shape[0], -1)
+
+        # Include the raw input if specified
+        if self.include_input:
+            encoding = torch.cat([x, encoding], dim=-1)  # Shape: (batch_size, d_out)
+
+        return encoding
     @classmethod
     def from_conf(cls, conf, d_in=3):
         # PyHocon construction
         return cls(
             conf.get_int("num_freqs", 6),
             d_in,
-            conf.get_float("freq_factor", np.pi),
-            conf.get_bool("include_input", True),
+         conf.get_float("sigma", 1.0),
+         conf.get_bool("include_input", True),
         )
+    
+    

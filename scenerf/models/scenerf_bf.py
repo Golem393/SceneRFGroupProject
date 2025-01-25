@@ -6,11 +6,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ExponentialLR
+from torchvision import models
+from torchvision import transforms
+
 
 from scenerf.loss.depth_metrics import compute_depth_errors
 from scenerf.loss.ss_loss import compute_l1_loss
 
-from scenerf.models.pe import PositionalEncoding
+from scenerf.models.pe import PositionalEncoding, RFFEncoding
 
 from scenerf.models.ray_som_kl import RaySOM
 
@@ -97,10 +100,10 @@ class SceneRF(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        self.pe = PositionalEncoding(
+        self.pe = RFFEncoding(
             num_freqs=6,
-            # num_freqs=10,
-            include_input=True)
+            include_input= True
+        )
 
         self.mlp = ResnetFC(
             d_in=39 + 3,
@@ -110,6 +113,14 @@ class SceneRF(pl.LightningModule):
             d_latent=2480
         )
 
+        vgg = models.vgg16(pretrained=True).features
+        vgg = vgg.eval()
+        for param in vgg.parameters():
+            param.requires_grad = False  # Freeze VGG weights
+
+        self.pl = PerceptualLoss(
+            vgg=vgg
+        )
 
         self.mlp_gaussian = ResnetFC(
             d_in=39 + 3,
@@ -145,6 +156,7 @@ class SceneRF(pl.LightningModule):
         total_loss_color = 0
         total_loss_kl = 0
         total_min_som_vars = 0
+        total_precep_loss = 0
 
         total_min_stds = 0
         total_loss_dist2closest_gauss = 0
@@ -186,7 +198,8 @@ class SceneRF(pl.LightningModule):
 
                 total_min_som_vars += ret['min_som_vars'].mean()
                 total_loss_kl += ret['loss_kl'].mean()
-
+                total_precep_loss += ret['loss_precep'].mean()
+                
                 if self.smooth_loss_weight > 0:
                     total_loss_smooth += ret['loss_smooth'].mean()
                 total_loss_dist2closest_gauss += ret['loss_dist2closest_gauss'].mean()
@@ -370,7 +383,6 @@ class SceneRF(pl.LightningModule):
             self.log(key, agg_depth_errors[i_metric],
                     on_epoch=True, sync_dist=True)
 
- 
     def compute_reprojection_loss(
             self,
             pix_source, sampled_color_source,
@@ -772,3 +784,28 @@ class SceneRF(pl.LightningModule):
         )
         scheduler = ExponentialLR(optimizer, gamma=0.95)
         return [optimizer], [scheduler]
+
+
+class PerceptualLoss(torch.nn.Module):
+    def __init__(self, vgg):
+        super(PerceptualLoss, self).__init__()
+        self.vgg = vgg
+        self.transforms = transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225],
+        )
+        self.feature_layers = [3, 8, 15, 22]  
+
+    def forward(self, pred, target):
+        pred = self.transforms(pred)
+        target = self.transforms(target)
+        
+        loss = 0
+        x_pred = pred
+        x_target = target
+        for i, layer in enumerate(self.vgg):
+            x_pred = layer(x_pred)
+            x_target = layer(x_target)
+            if i in self.feature_layers:
+                loss += torch.nn.functional.l1_loss(x_pred, x_target)
+        return loss
