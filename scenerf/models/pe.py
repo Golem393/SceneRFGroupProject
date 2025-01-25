@@ -39,6 +39,9 @@ class RFFEncoding(torch.nn.Module):
         """
         # Compute the projection: 2 * pi * (x @ freqs) + biases
         print("x shape is ", x.shape)
+        print("freqs shape is ", self._freqs.shape)
+        print(self._freqs)
+        print("freqs number is ", self.num_freqs)
         projected = torch.matmul(x, self._freqs) + self._biases
         print("projected shape is ", projected.shape)
 
