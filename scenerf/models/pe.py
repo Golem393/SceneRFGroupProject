@@ -22,7 +22,7 @@ class RFFEncoding(torch.nn.Module):
             self.d_out += d_in
 
         # Randomly sample frequencies w' ~ N(0, sigma^2)
-        freqs = torch.randn(d_in, self.num_freqs) * sigma
+        freqs = 2 * np.pi * torch.randn(d_in, self.num_freqs) * sigma
         self.register_buffer("_freqs", freqs)
 
         # Randomly sample biases b' ~ U[0, 2pi]
@@ -38,7 +38,7 @@ class RFFEncoding(torch.nn.Module):
         :return: Encoded tensor of shape (batch_size, d_out)
         """
         # Compute the projection: 2 * pi * (x @ freqs) + biases
-        projected = 2 * np.pi * torch.matmul(x, self._freqs) + self._biases  # Shape: (batch_size, 2D)
+        projected = torch.matmul(x, self._freqs) + self._biases
 
         # Compute  cosine embeddings
         cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)
