@@ -42,17 +42,23 @@ class RFFEncoding(torch.nn.Module):
         print("freqs shape is ", self._freqs.shape)
         print(self._freqs)
         print("freqs number is ", self.num_freqs)
-        projected = torch.matmul(x, self._freqs) + self._biases
         print("projected shape is ", projected.shape)
 
-        # Compute  cosine embeddings
-        cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)
-      
-        encoding = cos_enc.view(x.shape[0], -1)
+        # Compute the projection: x @ freqs + biases
+        projected = torch.matmul(x, self._freqs) + self._biases  # Shape: [64, 12]
+
+        # Compute cosine embeddings with sqrt(2) scaling
+        cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)  # Shape: [64, 12]
+
+        # Reshape to [batch_size, d_in * num_freqs]
+        cos_enc = cos_enc.unsqueeze(-1).expand(-1, -1, self.d_in)  # Shape: [64, 12, 3]
+        cos_enc = cos_enc.reshape(x.shape[0], -1)  # Shape: [64, 36]
 
         # Include the raw input if specified
         if self.include_input:
-            encoding = torch.cat([x, encoding], dim=-1)  # Shape: (batch_size, d_out)
+            encoding = torch.cat([x, cos_enc], dim=-1)  # Shape: [64, 39]
+        else:
+            encoding = cos_enc  # Shape: [64, 36]
 
         return encoding
     @classmethod
