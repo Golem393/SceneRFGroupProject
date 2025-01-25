@@ -539,7 +539,7 @@ class SceneRF(pl.LightningModule):
             pix_coords=projected_pix)
         
         pe = self.pe(cam_pts)
-
+        self.log("pe shape is " + pe.shape)
         feats_2d_sphere = [sample_feats_2d(x_rgb["1_1"].unsqueeze(0), pix_sphere_coords, (self.out_img_W, self.out_img_H))]
         for scale in [2, 4, 8, 16]:
             key = "1_{}".format(scale)
