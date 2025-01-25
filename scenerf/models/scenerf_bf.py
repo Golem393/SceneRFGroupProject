@@ -113,15 +113,6 @@ class SceneRF(pl.LightningModule):
             d_latent=2480
         )
 
-        vgg = models.vgg16(pretrained=True).features
-        vgg = vgg.eval()
-        for param in vgg.parameters():
-            param.requires_grad = False  # Freeze VGG weights
-
-        self.pl = PerceptualLoss(
-            vgg=vgg
-        )
-
         self.mlp_gaussian = ResnetFC(
             d_in=39 + 3,
             d_out=2,
@@ -784,28 +775,3 @@ class SceneRF(pl.LightningModule):
         )
         scheduler = ExponentialLR(optimizer, gamma=0.95)
         return [optimizer], [scheduler]
-
-
-class PerceptualLoss(torch.nn.Module):
-    def __init__(self, vgg):
-        super(PerceptualLoss, self).__init__()
-        self.vgg = vgg
-        self.transforms = transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225],
-        )
-        self.feature_layers = [3, 8, 15, 22]  
-
-    def forward(self, pred, target):
-        pred = self.transforms(pred)
-        target = self.transforms(target)
-        
-        loss = 0
-        x_pred = pred
-        x_target = target
-        for i, layer in enumerate(self.vgg):
-            x_pred = layer(x_pred)
-            x_target = layer(x_target)
-            if i in self.feature_layers:
-                loss += torch.nn.functional.l1_loss(x_pred, x_target)
-        return loss
