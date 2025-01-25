@@ -23,7 +23,6 @@ class RFFEncoding(torch.nn.Module):
         # Randomly sample frequencies w' ~ N(0, sigma^2)
         freqs = 2 * np.pi * torch.randn(d_in, self.num_freqs) * sigma
         self.register_buffer("_freqs", freqs)
-        # print("freqs shape is ",freqs.shape)
 
         # Randomly sample biases b' ~ U[0, 2pi]
         biases = 2 * np.pi * torch.rand(self.num_freqs)
@@ -37,29 +36,23 @@ class RFFEncoding(torch.nn.Module):
         :param x: Input tensor of shape (batch_size, d_in)
         :return: Encoded tensor of shape (batch_size, d_out)
         """
-        # Compute the projection: 2 * pi * (x @ freqs) + biases
-        print("bias shape is ",self._biases.shape)
-        print("bias is ", self._biases)
-        print(self._freqs)
-        print("freqs number is ", self.num_freqs)
 
         # Compute the projection: x @ freqs + biases
         # Expand the input to match the number of frequencies
         embed = x.unsqueeze(1).repeat(1, self.num_freqs, 1)  # Shape: [64, 12, 3]
         print("embed size ", embed.shape)
         print("embed is ", embed)
+
         # Combine with frequencies and biases
 
         bias = self._biases 
         bias = bias.unsqueeze(0)
-        bias = bias.unsqueeze(-1)
-        print("bias size is ", bias.shape)
+        bias = bias.unsqueeze(-1) # 1 12 1
+
         # Transpose frequencies to match the shape of embed
         freqs = self._freqs.unsqueeze(0).transpose(1, 2)  # Shape: [1, 12, 3]
-
+        embed * freqs + bias 
         projected = torch.addcmul(bias, embed, freqs)  # Shape: [64, 12, 3]
-        print("projected shape is ", projected.shape)
-        print(projected)
 
 
         # Compute cosine embeddings with sqrt(2) scaling
