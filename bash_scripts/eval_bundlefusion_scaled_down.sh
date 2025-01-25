@@ -3,8 +3,8 @@
 # Set environment variables
 export BF_ROOT=/root/dataset/bundlefusion
 export BF_LOG=/root/SceneRFGroupProject/logs/monoscene2/bundlefusion
-export EVAL_SAVE_DIR=/root/SceneRFGroupProject/evaluation/eval
-export RECON_SAVE_DIR=/root/SceneRFGroupProject/evaluation/recon
+export EVAL_SAVE_DIR=/root/SceneRFGroupProject/evaluation/u_net_attn/eval
+export RECON_SAVE_DIR=/root/SceneRFGroupProject/evaluation/u_net_attn/recon
 export MODEL_PATH=/root/SceneRFGroupProject/logs/monoscene2/bundlefusion/attn_exp_lr2e-05_1024rays_b7_nGaus2_nPtsPerGaus4_std0.1_SOMSigma0.02_sphere640x480_addfov7x5_nFrames16_frameInterval2/checkpoints/last.ckpt
 
 # Novel depths synthesis on Bundlefusion

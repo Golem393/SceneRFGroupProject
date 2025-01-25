@@ -35,4 +35,8 @@ dataset/
 logs/
 
 # Recon Dir
-evaluation_attn/ 
+evaluation/
+
+# Bash scripts
+bash_scripts/
+
