@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 from scenerf.loss.depth_metrics import compute_depth_errors
 from scenerf.loss.ss_loss import compute_l1_loss
 
-from scenerf.models.pe import PositionalEncoding
+from scenerf.models.pe import RFFEncoding
 
 from scenerf.models.ray_som_kl import RaySOM
 
@@ -97,7 +97,7 @@ class SceneRF(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        self.pe = PositionalEncoding(
+        self.pe = RFFEncoding(
             num_freqs=6,
             # num_freqs=10,
             include_input=True)
