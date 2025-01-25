@@ -21,7 +21,7 @@ class RFFEncoding(torch.nn.Module):
             self.d_out += d_in
 
         # Randomly sample frequencies w' ~ N(0, sigma^2)
-        freqs = 2 * np.pi * torch.randn(self.num_freqs,d_in) * sigma
+        freqs = 2 * np.pi * torch.randn(d_in, self.num_freqs) * sigma
         self.register_buffer("_freqs", freqs)
         # print("freqs shape is ",freqs.shape)
 
@@ -54,7 +54,7 @@ class RFFEncoding(torch.nn.Module):
         bias = bias.unsqueeze(0)
         bias = bias.unsqueeze(-1)
         # Transpose frequencies to match the shape of embed
-        freqs = self._freqs.unsqueeze(0)  # Shape: [1, 12, 3]
+        freqs = self._freqs.unsqueeze(0).transpose(1, 2)  # Shape: [1, 12, 3]
 
         projected = torch.addcmul(bias, embed, freqs)  # Shape: [64, 12, 3]
         print("projected shape is ", projected.shape)
