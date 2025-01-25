@@ -53,6 +53,7 @@ class RFFEncoding(torch.nn.Module):
         bias = self._biases 
         bias = bias.unsqueeze(0)
         bias = bias.unsqueeze(-1)
+        print("bias size is ", bias.shape)
         # Transpose frequencies to match the shape of embed
         freqs = self._freqs.unsqueeze(0).transpose(1, 2)  # Shape: [1, 12, 3]
 
