@@ -113,7 +113,7 @@ class DecoderSphere(nn.Module):
         )
 
         # Insert Multi-Head Self-Attention in the bottleneck
-        self.bottleneck_attention = TorchMultiheadAttention(features, num_heads=10)
+        # self.bottleneck_attention = TorchMultiheadAttention(features, num_heads=10)
 
         self.out_feature_1_1 = out_feature
         self.out_feature_1_2 = out_feature
@@ -191,7 +191,7 @@ class DecoderSphere(nn.Module):
         x_block32 = self.conv2(x_block32)  # shape: (B, features, H/32, W/32)
 
         # Apply self-attention in the bottleneck
-        x_block32 = self.bottleneck_attention(x_block32)
+        # x_block32 = self.bottleneck_attention(x_block32)
 
         x_sphere_32 = self.get_sphere_feature(x_block32, pix, pix_sphere, 32)
         x_sphere_16 = self.get_sphere_feature(x_block16, pix, pix_sphere, 16)
