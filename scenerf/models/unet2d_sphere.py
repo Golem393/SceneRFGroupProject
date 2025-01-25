@@ -5,52 +5,52 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class SelfAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads):
-        super(SelfAttention, self).__init__()
-        self.multihead_attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
-        self.norm = nn.LayerNorm(embed_dim)
-        self.ffn = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim * 2),
-            nn.ReLU(),
-            nn.Linear(embed_dim * 2, embed_dim),
-        )
+# class SelfAttention(nn.Module):
+#     def __init__(self, embed_dim, num_heads):
+#         super(SelfAttention, self).__init__()
+#         self.multihead_attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+#         self.norm = nn.LayerNorm(embed_dim)
+#         self.ffn = nn.Sequential(
+#             nn.Linear(embed_dim, embed_dim * 2),
+#             nn.ReLU(),
+#             nn.Linear(embed_dim * 2, embed_dim),
+#         )
 
-    def forward(self, x):
-        # Input shape: (B, C, H, W)
-        B, C, H, W = x.shape
-        x = x.view(B, C, -1).permute(0, 2, 1)  # (B, H*W, C)
+#     def forward(self, x):
+#         # Input shape: (B, C, H, W)
+#         B, C, H, W = x.shape
+#         x = x.view(B, C, -1).permute(0, 2, 1)  # (B, H*W, C)
         
-        attn_output, _ = self.multihead_attn(x, x, x)
-        x = self.norm(x + attn_output) 
+#         attn_output, _ = self.multihead_attn(x, x, x)
+#         x = self.norm(x + attn_output) 
         
-        ff_output = self.ffn(x)
-        x = self.norm(x + ff_output)  
+#         ff_output = self.ffn(x)
+#         x = self.norm(x + ff_output)  
         
-        return x.permute(0, 2, 1).view(B, C, H, W)  # Reshape back to (B, C, H, W)
-class BasicBlockWithAttention(nn.Module):
-    def __init__(self, channel_num, dilations):
-        super(BasicBlockWithAttention, self).__init__()
-        self.conv_block1 = nn.Sequential(
-            nn.Conv2d(channel_num, channel_num, 3, padding=dilations[0], dilation=dilations[0]),
-            nn.BatchNorm2d(channel_num),
-            nn.LeakyReLU(),
-        )
-        self.conv_block2 = nn.Sequential(
-            nn.Conv2d(channel_num, channel_num, 3, padding=dilations[1], dilation=dilations[1]),
-            nn.BatchNorm2d(channel_num),
-        )
-        self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=4)
-        self.lrelu = nn.LeakyReLU()
+#         return x.permute(0, 2, 1).view(B, C, H, W)  # Reshape back to (B, C, H, W)
+# class BasicBlockWithAttention(nn.Module):
+#     def __init__(self, channel_num, dilations):
+#         super(BasicBlockWithAttention, self).__init__()
+#         self.conv_block1 = nn.Sequential(
+#             nn.Conv2d(channel_num, channel_num, 3, padding=dilations[0], dilation=dilations[0]),
+#             nn.BatchNorm2d(channel_num),
+#             nn.LeakyReLU(),
+#         )
+#         self.conv_block2 = nn.Sequential(
+#             nn.Conv2d(channel_num, channel_num, 3, padding=dilations[1], dilation=dilations[1]),
+#             nn.BatchNorm2d(channel_num),
+#         )
+#         self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=4)
+#         self.lrelu = nn.LeakyReLU()
 
-    def forward(self, x):
-        residual = x
-        x = self.conv_block1(x)
-        x = self.conv_block2(x)
-        x = self.self_attention(x)  # Add self-attention
-        x = x + residual
-        out = self.lrelu(x)
-        return out
+#     def forward(self, x):
+#         residual = x
+#         x = self.conv_block1(x)
+#         x = self.conv_block2(x)
+#         x = self.self_attention(x)  # Add self-attention
+#         x = x + residual
+#         out = self.lrelu(x)
+#         return out
 class BasicBlock(nn.Module):
     def __init__(self, channel_num, dilations):
         super(BasicBlock, self).__init__()
@@ -279,13 +279,13 @@ class UNet2DSphere(nn.Module):
             out_img_W=out_img_W,
             out_img_H=out_img_H
         )
-        self.self_attention = SelfAttention(embed_dim=num_features, num_heads=4)
+        # self.self_attention = SelfAttention(embed_dim=num_features, num_heads=4)
 
     def forward(self, x, pix, pix_sphere):
         encoded_feats = self.encoder(x)
         bottleneck_feature = encoded_feats[-1]
-        bottleneck_feature_with_attention = self.self_attention(bottleneck_feature)
-        encoded_feats[-1] = bottleneck_feature_with_attention
+        # bottleneck_feature_with_attention = self.self_attention(bottleneck_feature)
+        encoded_feats[-1] = bottleneck_feature
         unet_out = self.decoder(encoded_feats, pix, pix_sphere)
         return unet_out
 
