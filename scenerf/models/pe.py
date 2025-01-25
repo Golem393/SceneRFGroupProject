@@ -62,7 +62,7 @@ class RFFEncoding(torch.nn.Module):
         cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)  # Shape: [64, 12, 3]
 
         # Reshape to [batch_size, d_in * num_freqs]
-        cos_enc = cos_enc.view(cos_enc.shape[0], -1)  # Shape: [64, 36]
+        cos_enc = cos_enc.reshape(cos_enc.shape[0], -1)  # Shape: [64, 36]
 
         # Include the raw input if specified
         if self.include_input:
