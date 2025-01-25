@@ -37,8 +37,8 @@ class RFFEncoding(torch.nn.Module):
         :param x: Input tensor of shape (batch_size, d_in)
         :return: Encoded tensor of shape (batch_size, d_out)
         """
-        # Compute the projection: 2 * pi * (x @ freqs.T) + biases
-        projected = 2 * np.pi * torch.matmul(x, self._freqs.t()) + self._biases  # Shape: (batch_size, 2D)
+        # Compute the projection: 2 * pi * (x @ freqs) + biases
+        projected = 2 * np.pi * torch.matmul(x, self._freqs) + self._biases  # Shape: (batch_size, 2D)
 
         # Compute  cosine embeddings
         cos_enc = torch.sqrt(torch.tensor(2.0)) * torch.cos(projected)
