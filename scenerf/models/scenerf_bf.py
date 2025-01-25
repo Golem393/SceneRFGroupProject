@@ -13,7 +13,7 @@ from torchvision import transforms
 from scenerf.loss.depth_metrics import compute_depth_errors
 from scenerf.loss.ss_loss import compute_l1_loss
 
-from scenerf.models.pe import PositionalEncoding, RFFEncoding
+from scenerf.models.pe import  RFFEncoding
 
 from scenerf.models.ray_som_kl import RaySOM
 
