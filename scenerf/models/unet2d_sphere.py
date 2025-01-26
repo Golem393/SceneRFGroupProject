@@ -10,13 +10,13 @@ class PretrainedSwinLayer(nn.Module):
     def __init__(self, input_dim, embed_dim=128, pretrained=True):
         super().__init__()
         # Initialize Swin Transformer block with pretrained weights
-        self.swin = SwinTransformerBlock(
-            dim=embed_dim,
-            input_resolution=(7, 7),  # Adjust based on your feature map size
-            num_heads=4,
-            window_size=7,
-            shift_size=3  # Use shifted windows for better spatial awareness
+        self.swin = timm.create_model(
+            'swin_base_patch4_window7_224', 
+            pretrained=True,
+            features_only=True,
+            out_indices=(3,)  # Use final stage features
         )
+
         
         # Project CNN features to Swin's expected dimension
         self.proj = nn.Conv2d(input_dim, embed_dim, kernel_size=1)
