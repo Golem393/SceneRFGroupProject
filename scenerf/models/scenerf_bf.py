@@ -10,7 +10,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 from scenerf.loss.depth_metrics import compute_depth_errors
 from scenerf.loss.ss_loss import compute_l1_loss
 
-from scenerf.models.pe import PositionalEncoding
+# from scenerf.models.pe import PositionalEncoding
+from scenerf.models.pe_rff import RFFEncoding as PositionalEncoding
 
 from scenerf.models.ray_som_kl import RaySOM
 
