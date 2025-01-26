@@ -40,6 +40,8 @@ evaluation/
 # Bash scripts
 bash_scripts/
 
+eval_metrics/
+
 logs
 
 *.err
