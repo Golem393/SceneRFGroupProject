@@ -126,9 +126,7 @@ class SceneRF(pl.LightningModule):
         """
         pts_3d: bs, n_pts, 3
         """
-
         img_input = batch["img_inputs"]
-
         bs = img_input.shape[0]
 
         cam_K = batch['cam_K_depth'][0]
