@@ -4,8 +4,7 @@ Code adapted from https://github.com/cv-rits/MonoScene/blob/master/monoscene/mod
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from timm.models.swin_transformer import SwinTransformerBlock
-
+import timm
 class PretrainedSwinLayer(nn.Module):
     def __init__(self, input_dim, embed_dim=128, pretrained=True):
         super().__init__()
