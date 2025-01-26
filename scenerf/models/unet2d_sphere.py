@@ -4,53 +4,49 @@ Code adapted from https://github.com/cv-rits/MonoScene/blob/master/monoscene/mod
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from timm.models.swin_transformer import SwinTransformerBlock
 
-class SelfAttention(nn.Module):
-    def __init__(self, embed_dim, num_heads):
-        super(SelfAttention, self).__init__()
-        self.multihead_attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
-        self.norm = nn.LayerNorm(embed_dim)
-        self.ffn = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim * 4),
-            nn.ReLU(),
-            nn.Linear(embed_dim * 4, embed_dim),
+class PretrainedSwinLayer(nn.Module):
+    def __init__(self, input_dim, embed_dim=128, pretrained=True):
+        super().__init__()
+        # Initialize Swin Transformer block with pretrained weights
+        self.swin = SwinTransformerBlock(
+            dim=embed_dim,
+            input_resolution=(7, 7),  # Adjust based on your feature map size
+            num_heads=4,
+            window_size=7,
+            shift_size=3  # Use shifted windows for better spatial awareness
         )
+        
+        # Project CNN features to Swin's expected dimension
+        self.proj = nn.Conv2d(input_dim, embed_dim, kernel_size=1)
+        
+        # Initialize from pretrained model
+        if pretrained:
+            self.load_partial_weights("swin_base_patch4_window7_224")
+            
+    def load_partial_weights(self, model_name):
+        # Load pretrained Swin weights from timm
+        pretrained_model = torch.hub.load("facebookresearch/pytorch-image-models", 
+                                        model_name, pretrained=True)
+        # Transfer compatible weights
+        own_state = self.state_dict()
+        for name, param in pretrained_model.named_parameters():
+            if "layers.0.blocks.0" in name:  # Load weights from first stage
+                new_name = name.replace("layers.0.blocks.0.", "")
+                if new_name in own_state:
+                    own_state[new_name].copy_(param.data)
 
     def forward(self, x):
         # Input shape: (B, C, H, W)
-        B, C, H, W = x.shape
-        x = x.view(B, C, -1).permute(0, 2, 1)  # (B, H*W, C)
+        x_proj = self.proj(x)  # Project to Swin's dimension
         
-        attn_output, _ = self.multihead_attn(x, x, x)
-        x = self.norm(x + attn_output) 
+        # Swin expects (B, H, W, C)
+        x_perm = x_proj.permute(0, 2, 3, 1)  # (B, H, W, C)
+        x_out = self.swin(x_perm)
         
-        ff_output = self.ffn(x)
-        x = self.norm(x + ff_output)  
-        
-        return x.permute(0, 2, 1).view(B, C, H, W)  # Reshape back to (B, C, H, W)
-class BasicBlockWithAttention(nn.Module):
-    def __init__(self, channel_num, dilations):
-        super(BasicBlockWithAttention, self).__init__()
-        self.conv_block1 = nn.Sequential(
-            nn.Conv2d(channel_num, channel_num, 3, padding=dilations[0], dilation=dilations[0]),
-            nn.BatchNorm2d(channel_num),
-            nn.LeakyReLU(),
-        )
-        self.conv_block2 = nn.Sequential(
-            nn.Conv2d(channel_num, channel_num, 3, padding=dilations[1], dilation=dilations[1]),
-            nn.BatchNorm2d(channel_num),
-        )
-        self.self_attention = SelfAttention(embed_dim=channel_num, num_heads=4)
-        self.lrelu = nn.LeakyReLU()
-
-    def forward(self, x):
-        residual = x
-        x = self.conv_block1(x)
-        x = self.conv_block2(x)
-        x = self.self_attention(x)  # Add self-attention
-        x = x + residual
-        out = self.lrelu(x)
-        return out
+        # Return to (B, C, H, W) format
+        return x_out.permute(0, 3, 1, 2)
 class BasicBlock(nn.Module):
     def __init__(self, channel_num, dilations):
         super(BasicBlock, self).__init__()
@@ -85,9 +81,9 @@ class UpSampleBN(nn.Module):
         self._net = nn.Sequential(
             nn.Conv2d(skip_input, output_features,
                       kernel_size=3, stride=1, padding=1),
-            BasicBlockWithAttention(output_features, dilations=[1, 1]),
-            BasicBlockWithAttention(output_features, dilations=[2, 2]),
-            BasicBlockWithAttention(output_features, dilations=[3, 3]),
+            BasicBlock(output_features, dilations=[1, 1]),
+            BasicBlock(output_features, dilations=[2, 2]),
+            BasicBlock(output_features, dilations=[3, 3]),
         )
 
     def forward(self, x, concat_with):
@@ -116,7 +112,11 @@ class DecoderSphere(nn.Module):
         self.out_img_H = out_img_H
 
         features = int(num_features)
-
+        self.feature_enhancer = PretrainedSwinLayer(
+            input_dim=bottleneck_features,
+            embed_dim=128, 
+            pretrained=True
+        )
         self.conv2 = nn.Conv2d(
             bottleneck_features, features, kernel_size=1, stride=1, padding=1
         )
@@ -218,8 +218,14 @@ class DecoderSphere(nn.Module):
             features[8],
             features[11],
         )
+        bottleneck_feature = features[-1]
+        # Transform bottleneck feature with the pretrained transformer
+
+        enhanced_features = self.feature_enhancer(bottleneck_feature)
+
+
         bs = x_block32.shape[0]
-        x_block32 = self.conv2(x_block32)
+        x_block32 = self.conv2(enhanced_features)
   
   
         x_sphere_32 = self.get_sphere_feature(x_block32, pix, pix_sphere, 32)
