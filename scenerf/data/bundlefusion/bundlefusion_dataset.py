@@ -24,9 +24,9 @@ class BundlefusionDataset(Dataset):
     ):
         self.root = root
         splits = {
-            "train": ["apt0", "apt1", "apt2", "office0", "office1", "office2", "office3"],
-            "val": ["copyroom"],
-            "all": ["apt0", "apt1", "apt2", "office0", "office1", "office2", "office3", "copyroom"]
+            "train": ["rgbd_dataset_freiburg1_floor"],
+            "val": ["rgbd_dataset_freiburg1_desk"],
+            "all": ["rgbd_dataset_freiburg1_floor", "rgbd_dataset_freiburg1_desk"]
         }
         self.sequences = splits[split]
         self.n_sources = n_sources
