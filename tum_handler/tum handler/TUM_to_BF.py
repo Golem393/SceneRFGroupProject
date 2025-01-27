@@ -32,9 +32,9 @@ def combine_and_rename_files(tum_folder, output_folder, margin=0.02):
     pose_entries = [(float(line.split()[0]), line.split()[1:]) for line in pose_lines]
 
 
-
-    for idx, (rgb_ts, rgb_filename) in enumerate(rgb_entries):
-        frame_id = f"frame-{idx:06d}"
+    frame_counter = 0
+    for _, (rgb_ts, rgb_filename) in enumerate(rgb_entries):
+        frame_id = f"frame-{frame_counter:06d}"
         
         # Find closest depth
         closest_depth = min(depth_entries, key=lambda x: abs(rgb_ts - x[0]))
@@ -49,10 +49,11 @@ def combine_and_rename_files(tum_folder, output_folder, margin=0.02):
             continue
         depth_entries.remove(closest_depth)
         pose_entries.remove(closest_pose)
+        frame_counter += 1
 
         # RGB
         rgb_src = os.path.join(rgb_path, rgb_filename)
-        rgb_dst = os.path.join(output_folder, f"{frame_id}.color.jpg")
+        rgb_dst = os.path.join(output_folder, f"{frame_id}.color.png")
         os.rename(rgb_src, rgb_dst)
 
         # Depth
