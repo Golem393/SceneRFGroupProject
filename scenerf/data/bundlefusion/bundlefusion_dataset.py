@@ -52,7 +52,7 @@ class BundlefusionDataset(Dataset):
                 os.path.join(self.root, sequence, "info.txt")
             )
             glob_path = os.path.join(
-                self.root, sequence, "*.color.jpg"
+                self.root, sequence, "*.color.png"
             )
             rgb_paths = glob.glob(glob_path)
             for rgb_path in rgb_paths:
@@ -127,7 +127,7 @@ class BundlefusionDataset(Dataset):
         source_frame_ids = []
         source_depths = []
 
-        img_input_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(frame_id))
+        img_input_path = os.path.join(self.root, sequence, "frame-{}.color.png".format(frame_id))
         img_input = self.to_tensor_normalized(self.read_rgb(img_input_path, aug=True))
         img_input_original = self.to_tensor(self.read_rgb(img_input_path, aug=False))
 
@@ -148,8 +148,8 @@ class BundlefusionDataset(Dataset):
             source_frame_ids.append(rel_frame_id)
             target_id = source_id - 1
             
-            img_source_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[source_id]))
-            img_target_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[target_id]))
+            img_source_path = os.path.join(self.root, sequence, "frame-{}.color.png".format(rel_frame_ids[source_id]))
+            img_target_path = os.path.join(self.root, sequence, "frame-{}.color.png".format(rel_frame_ids[target_id]))
             img_source = self.to_tensor(self.read_rgb(img_source_path))
             img_target = self.to_tensor(self.read_rgb(img_target_path))
             img_sources.append(img_source)
