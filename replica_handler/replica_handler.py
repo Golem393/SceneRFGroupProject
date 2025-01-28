@@ -91,9 +91,13 @@ m_calibrationDepthExtrinsic = 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
     width = 640
     height = 480
     
-    camera = pyrender.IntrinsicsCamera(fx=fx, fy=fy, cx=cx, cy=cy, 
-                                       znear=0.01, zfar=1000.0,
-                                       width=width, height=height)
+    camera = camera = pyrender.IntrinsicsCamera(
+    fx=fx,
+    fy=fy,
+    cx=cx,
+    cy=cy,
+    znear=0.01,
+    zfar=1000.0)
     camera_pose = np.eye(4)  # Will update per frame
     camera_node = scene.add(camera, pose=camera_pose)
     
