@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 import os
+os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+os.environ["MESA_LOADER_DRIVER_OVERRIDE"] = "osmesa"  # or llvmpipe, etc.
+# Optional: Force PyOpenGL to not use GLX
+os.environ["PYOPENGL_PLATFORM"] = "osmesa"
+
 import sys
 import numpy as np
 import trimesh
