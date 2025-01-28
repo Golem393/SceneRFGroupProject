@@ -1,0 +1,13 @@
+# Core libraries
+numpy
+imageio
+Pillow
+
+# 3D rendering / geometry
+trimesh
+pyrender
+
+# pyrender often needs these:
+pyglet
+PyOpenGL
+PyOpenGL-accelerate
