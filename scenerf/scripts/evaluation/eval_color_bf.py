@@ -62,7 +62,7 @@ def print_metrics(psnr_accum, ssim_accum, lpips_accum, cnt_accum):
 @click.option('--eval_save_dir', default="")
 def main(eval_save_dir):
 
-    sequence = "copyroom"
+    sequence = "rgbd_dataset_freiburg3_long_office_household"
     rgb_save_dir = os.path.join(eval_save_dir, "rgb", sequence)
     render_rgb_save_dir = os.path.join(eval_save_dir, "render_rgb", sequence)
     rgb_paths = glob.glob(os.path.join(rgb_save_dir, "*.png"))

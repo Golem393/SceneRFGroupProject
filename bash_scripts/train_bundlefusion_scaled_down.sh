@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Set environment variables
-export BF_ROOT=/root/dataset/bundlefusion
-export BF_LOG=/root/SceneRFGroupProject/logs/monoscene2/bundlefusion
+export BF_ROOT=/root/dataset/tum_rgbd
+export BF_LOG=/root/SceneRFGroupProject/logs/tum_rgbd
 
 # Run the training script
 python scenerf/scripts/train_bundlefusion.py --bs=1 --n_gpus=1 --n_workers_per_gpu=4\
@@ -14,8 +14,8 @@ python scenerf/scripts/train_bundlefusion.py --bs=1 --n_gpus=1 --n_workers_per_g
     --sample_grid_size=2 \
     --n_gaussians=2 \
     --n_pts_per_gaussian=4 \
-    --n_pts_uni=6 \
-    --n_pts_hier=10 \
+    --n_pts_uni=8 \
+    --n_pts_hier=8 \
     --add_fov_hor=7 \
     --add_fov_ver=5 \
     --sphere_h=480 \

@@ -36,3 +36,7 @@ logs/
 
 # Recon Dir
 evaluation/
+
+evaluation_results/
+
+bash_scripts/

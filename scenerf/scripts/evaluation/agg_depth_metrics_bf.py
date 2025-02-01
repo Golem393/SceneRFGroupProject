@@ -66,7 +66,7 @@ def main(
     print("=================")
     print("====== End ======")
     print("=================")
-    print(model_name)
+    # print(model_name)
     print_metrics(agg_depth_errors, agg_n_frames)
 
             
