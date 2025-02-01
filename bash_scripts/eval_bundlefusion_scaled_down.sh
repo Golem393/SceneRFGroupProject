@@ -15,7 +15,7 @@ python scenerf/scripts/evaluation/save_depth_metrics_bf.py \
 
 python scenerf/scripts/evaluation/agg_depth_metrics_bf.py \
     --eval_save_dir=$EVAL_SAVE_DIR \
-    --root=$BF_ROOT
+    --root=$BF_ROOTgit 
 
 
 # Novel views synthesis on Bundlefusion
