@@ -48,7 +48,9 @@ Below is a summary of the modifications introduced in **this fork** to support a
 
 5. **Hierarchical Sampling**  
    - **Modified Files:** `scenerf/scripts/train_bundlefusion.py` (added a `--n_pts_hier` argument) and `scenerf/models/scenerf_bf.py` (to implement hierarchical sampling).
+   - Implements **Hierarchical Sampling** alongside uniform and probabilistic sampling.
    - Allows specifying the number of points for hierarchical sampling directly from the command line.
+   - Probabilistic sampling could sometimes overly concentrate on specific surface areas, leading to an imbalanced focus. Hierarchical sampling refines the uniform sampling points, ensuring a more even distribution near surfaces and improving overall reconstruction quality.
 
 These additions are meant to expand SceneRF’s usability and are not part of the official publication.
 
