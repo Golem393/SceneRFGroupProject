@@ -36,13 +36,9 @@ class RFFEncoding(torch.nn.Module):
         :param x: Input tensor of shape (batch_size, d_in)
         :return: Encoded tensor of shape (batch_size, d_out)
         """
-
-        print("hi")
         # Compute the projection: x @ freqs + biases
         # Expand the input to match the number of frequencies
         embed = x.unsqueeze(1).repeat(1, self.num_freqs, 1)  # Shape: [64, 12, 3]
-        print("embed size ", embed.shape)
-        print("embed is ", embed)
 
         # Combine with frequencies and biases
 

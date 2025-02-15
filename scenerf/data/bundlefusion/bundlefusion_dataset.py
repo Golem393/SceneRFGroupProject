@@ -28,6 +28,39 @@ class BundlefusionDataset(Dataset):
             "val": ["copyroom"],
             "all": ["apt0", "apt1", "apt2", "office0", "office1", "office2", "office3", "copyroom"]
         }
+
+        splits = {
+            "train": [
+                "rgbd_dataset_freiburg1_360",
+                "rgbd_dataset_freiburg1_desk",
+                "rgbd_dataset_freiburg1_floor",
+                "rgbd_dataset_freiburg1_room",
+                "rgbd_dataset_freiburg1_xyz",
+                "rgbd_dataset_freiburg2_360_hemisphere",
+                "rgbd_dataset_freiburg2_desk",
+                "rgbd_dataset_freiburg2_large_no_loop",
+                "rgbd_dataset_freiburg2_pioneer_360",
+                "rgbd_dataset_freiburg2_xyz",
+                "rgbd_dataset_freiburg3_structure_texture_far"
+            ],
+            "val": [
+                "rgbd_dataset_freiburg3_long_office_household"
+            ],
+            "all": [
+                "rgbd_dataset_freiburg1_360",
+                "rgbd_dataset_freiburg1_desk",
+                "rgbd_dataset_freiburg1_floor",
+                "rgbd_dataset_freiburg1_room",
+                "rgbd_dataset_freiburg1_xyz",
+                "rgbd_dataset_freiburg2_360_hemisphere",
+                "rgbd_dataset_freiburg2_desk",
+                "rgbd_dataset_freiburg2_large_no_loop",
+                "rgbd_dataset_freiburg2_pioneer_360",
+                "rgbd_dataset_freiburg2_xyz",
+                "rgbd_dataset_freiburg3_structure_texture_far",
+                "rgbd_dataset_freiburg3_long_office_household"
+            ]
+        }
         self.sequences = splits[split]
         self.n_sources = n_sources
         self.frame_interval = frame_interval
@@ -52,7 +85,7 @@ class BundlefusionDataset(Dataset):
                 os.path.join(self.root, sequence, "info.txt")
             )
             glob_path = os.path.join(
-                self.root, sequence, "*.color.jpg"
+                self.root, sequence, "*.color.png"
             )
             rgb_paths = glob.glob(glob_path)
             for rgb_path in rgb_paths:
@@ -127,7 +160,7 @@ class BundlefusionDataset(Dataset):
         source_frame_ids = []
         source_depths = []
 
-        img_input_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(frame_id))
+        img_input_path = os.path.join(self.root, sequence, "frame-{}.color.png".format(frame_id))
         img_input = self.to_tensor_normalized(self.read_rgb(img_input_path, aug=True))
         img_input_original = self.to_tensor(self.read_rgb(img_input_path, aug=False))
 
@@ -148,8 +181,8 @@ class BundlefusionDataset(Dataset):
             source_frame_ids.append(rel_frame_id)
             target_id = source_id - 1
             
-            img_source_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[source_id]))
-            img_target_path = os.path.join(self.root, sequence, "frame-{}.color.jpg".format(rel_frame_ids[target_id]))
+            img_source_path = os.path.join(self.root, sequence, "frame-{}.color.png".format(rel_frame_ids[source_id]))
+            img_target_path = os.path.join(self.root, sequence, "frame-{}.color.png".format(rel_frame_ids[target_id]))
             img_source = self.to_tensor(self.read_rgb(img_source_path))
             img_target = self.to_tensor(self.read_rgb(img_target_path))
             img_sources.append(img_source)
@@ -251,7 +284,7 @@ class BundlefusionDataset(Dataset):
         and save the depth values (in millimeters) into a 2d numpy array.
         The depth image file is assumed to be in 16-bit PNG format, depth in millimeters.
         """
-        depth = imageio.imread(depth_filename) / 1000.0  # numpy.float64
+        depth = imageio.imread(depth_filename) / 5000.0  # numpy.float64
         depth = np.asarray(depth)
 
         return depth

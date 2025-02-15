@@ -118,7 +118,7 @@ def main(
 
                     # Save corresponding rgb image
                     if not os.path.exists(rgb_filepath):
-                        source_path = os.path.join(root, sequence, "frame-{}.color.jpg".format(source_frame_id))
+                        source_path = os.path.join(root, sequence, "frame-{}.color.png".format(source_frame_id))
                         shutil.copyfile(source_path, rgb_filepath)
 
 
