@@ -1,29 +1,22 @@
-"""
-Code adapted from https://github.com/cv-rits/MonoScene/blob/master/monoscene/models/unet2d.py
-"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class BasicBlock(nn.Module):
     def __init__(self, channel_num, dilations):
         super(BasicBlock, self).__init__()
-
         self.conv_block1 = nn.Sequential(
             nn.Conv2d(channel_num, channel_num, 3,
                       padding=dilations[0], dilation=dilations[0]),
             nn.BatchNorm2d(channel_num),
-            nn.LeakyReLU(),
-            # nn.ReLU(),
+            nn.LeakyReLU(inplace=True),
         )
         self.conv_block2 = nn.Sequential(
             nn.Conv2d(channel_num, channel_num, 3,
                       padding=dilations[1], dilation=dilations[1]),
             nn.BatchNorm2d(channel_num),
         )
-        self.lrelu = nn.LeakyReLU()
-        # self.lrelu = nn.ReLU()
+        self.lrelu = nn.LeakyReLU(inplace=True)
 
     def forward(self, x):
         residual = x
@@ -38,8 +31,7 @@ class UpSampleBN(nn.Module):
     def __init__(self, skip_input, output_features):
         super(UpSampleBN, self).__init__()
         self._net = nn.Sequential(
-            nn.Conv2d(skip_input, output_features,
-                      kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(skip_input, output_features, kernel_size=3, stride=1, padding=1),
             BasicBlock(output_features, dilations=[1, 1]),
             BasicBlock(output_features, dilations=[2, 2]),
             BasicBlock(output_features, dilations=[3, 3]),
@@ -52,8 +44,52 @@ class UpSampleBN(nn.Module):
             mode="bilinear",
             align_corners=True,
         )
+
         f = torch.cat([up_x, concat_with], dim=1)
+
         return self._net(f)
+
+
+#Multi-Head Self-Attention for 2D Features
+class TorchMultiheadAttention(nn.Module):
+    """
+    Uses PyTorch's built-in nn.MultiheadAttention on 2D feature maps.
+    We flatten (H, W) -> a sequence, treating 'C' as the embedding dim.
+    """
+    def __init__(self, in_channels, num_heads=8, dropout=0.0):
+        super().__init__()
+        self.in_channels = in_channels
+        self.num_heads = num_heads
+
+        assert in_channels % num_heads == 0, (
+            "in_channels must be divisible by num_heads."
+        )
+
+        self.mha = nn.MultiheadAttention(
+            embed_dim=in_channels,
+            num_heads=num_heads,
+            dropout=dropout,
+            batch_first=True
+        )
+
+        self.layer_norm = nn.LayerNorm(in_channels)
+
+    def forward(self, x):
+        """
+        x: shape (B, C, H, W)
+        Returns: shape (B, C, H, W) after self-attention
+        """
+        B, C, H, W = x.shape
+
+        x_reshaped = x.flatten(2).permute(0, 2, 1)
+
+        attn_out, _ = self.mha(x_reshaped, x_reshaped, x_reshaped)
+        
+        x_ = attn_out + x_reshaped
+        x_ = self.layer_norm(x_)
+
+        x_ = x_.permute(0, 2, 1).view(B, C, H, W)
+        return x_
 
 
 class DecoderSphere(nn.Module):
@@ -76,6 +112,9 @@ class DecoderSphere(nn.Module):
             bottleneck_features, features, kernel_size=1, stride=1, padding=1
         )
 
+        # Insert Multi-Head Self-Attention in the bottleneck
+        # self.bottleneck_attention = TorchMultiheadAttention(features, num_heads=10)
+
         self.out_feature_1_1 = out_feature
         self.out_feature_1_2 = out_feature
         self.out_feature_1_4 = out_feature
@@ -87,67 +126,39 @@ class DecoderSphere(nn.Module):
         self.feature_1_2 = features // 16
         self.feature_1_1 = features // 32
 
-        self.resize_1_1 = nn.Conv2d(
-            3, self.feature_1_1, kernel_size=1
-        )
-        self.resize_1_2 = nn.Conv2d(
-            32, self.feature_1_2, kernel_size=1
-        )
-        self.resize_1_4 = nn.Conv2d(
-            48, self.feature_1_4, kernel_size=1
-        )
-        self.resize_1_8 = nn.Conv2d(
-            80, self.feature_1_8, kernel_size=1
-        )
-        self.resize_1_16 = nn.Conv2d(
-            224, self.feature_1_16, kernel_size=1
-        )
+        self.resize_1_1 = nn.Conv2d(3, self.feature_1_1, kernel_size=1)
+        self.resize_1_2 = nn.Conv2d(32, self.feature_1_2, kernel_size=1)
+        self.resize_1_4 = nn.Conv2d(48, self.feature_1_4, kernel_size=1)
+        self.resize_1_8 = nn.Conv2d(80, self.feature_1_8, kernel_size=1)
+        self.resize_1_16 = nn.Conv2d(224, self.feature_1_16, kernel_size=1)
 
-        self.resize_output_1_1 = nn.Conv2d(
-            self.feature_1_1, self.out_feature_1_1, kernel_size=1
-        )
-        self.resize_output_1_2 = nn.Conv2d(
-            self.feature_1_2, self.out_feature_1_2, kernel_size=1
-        )
-        self.resize_output_1_4 = nn.Conv2d(
-            self.feature_1_4, self.out_feature_1_4, kernel_size=1
-        )
-        self.resize_output_1_8 = nn.Conv2d(
-            self.feature_1_8, self.out_feature_1_8, kernel_size=1
-        )
-        self.resize_output_1_16 = nn.Conv2d(
-            self.feature_1_16, self.out_feature_1_16, kernel_size=1
-        )
+        self.resize_output_1_1 = nn.Conv2d(self.feature_1_1, self.out_feature_1_1, kernel_size=1)
+        self.resize_output_1_2 = nn.Conv2d(self.feature_1_2, self.out_feature_1_2, kernel_size=1)
+        self.resize_output_1_4 = nn.Conv2d(self.feature_1_4, self.out_feature_1_4, kernel_size=1)
+        self.resize_output_1_8 = nn.Conv2d(self.feature_1_8, self.out_feature_1_8, kernel_size=1)
+        self.resize_output_1_16 = nn.Conv2d(self.feature_1_16, self.out_feature_1_16, kernel_size=1)
 
-        self.up16 = UpSampleBN(
-            skip_input=features + 224, output_features=self.feature_1_16
-        )
-        self.up8 = UpSampleBN(
-            skip_input=self.feature_1_16 + 80, output_features=self.feature_1_8
-        )
-        self.up4 = UpSampleBN(
-            skip_input=self.feature_1_8 + 48, output_features=self.feature_1_4,
-        )
-        self.up2 = UpSampleBN(
-            skip_input=self.feature_1_4 + 32, output_features=self.feature_1_2
-        )
-        self.up1 = UpSampleBN(
-            skip_input=self.feature_1_2 + 3, output_features=self.feature_1_1
-        )
+        self.up16 = UpSampleBN(skip_input=features + 224, output_features=self.feature_1_16)
+        self.up8 = UpSampleBN(skip_input=self.feature_1_16 + 80, output_features=self.feature_1_8)
+        self.up4 = UpSampleBN(skip_input=self.feature_1_8 + 48, output_features=self.feature_1_4)
+        self.up2 = UpSampleBN(skip_input=self.feature_1_4 + 32, output_features=self.feature_1_2)
+        self.up1 = UpSampleBN(skip_input=self.feature_1_2 + 3, output_features=self.feature_1_1)
 
     def get_sphere_feature(self, x, pix, pix_sphere, scale):
+        """
+        Reprojects x -> spherical coordinates using grid_sample.
+        This is the original function from your S-UNet code.
+        """
         out_W, out_H = round(self.out_img_W/scale), round(self.out_img_H/scale)
         map_sphere = torch.zeros((out_W, out_H, 2)).type_as(x) - 10.0
         pix_sphere_scale = torch.round(pix_sphere / scale).long()
         pix_scale = pix // scale
         pix_sphere_scale[:, 0] = pix_sphere_scale[:, 0].clamp(0, out_W-1)
         pix_sphere_scale[:, 1] = pix_sphere_scale[:, 1].clamp(0, out_H-1)
-  
-        map_sphere[pix_sphere_scale[:, 0],
-                   pix_sphere_scale[:, 1], :] = pix_scale
+
+        map_sphere[pix_sphere_scale[:, 0], pix_sphere_scale[:, 1], :] = pix_scale
         map_sphere = map_sphere.reshape(-1, 2)
 
-  
         map_sphere[:, 0] /= x.shape[3]
         map_sphere[:, 1] /= x.shape[2]
         map_sphere = map_sphere * 2 - 1
@@ -161,10 +172,13 @@ class DecoderSphere(nn.Module):
         )
         feats = feats.reshape(feats.shape[0], feats.shape[1], out_W, out_H)
         feats = feats.permute(0, 1, 3, 2)
-
         return feats
 
     def forward(self, features, pix, pix_sphere):
+        """
+        features: list of encoder outputs at multiple scales
+        pix, pix_sphere: pixel mapping for spherical projection
+        """
         x_block1, x_block2, x_block4, x_block8, x_block16, x_block32 = (
             features[0],
             features[4],
@@ -173,29 +187,24 @@ class DecoderSphere(nn.Module):
             features[8],
             features[11],
         )
-        bs = x_block32.shape[0]
-        x_block32 = self.conv2(x_block32)
-  
-  
+
+        x_block32 = self.conv2(x_block32)  # shape: (B, features, H/32, W/32)
+
+        # Apply self-attention in the bottleneck
+        # x_block32 = self.bottleneck_attention(x_block32)
+
         x_sphere_32 = self.get_sphere_feature(x_block32, pix, pix_sphere, 32)
-        
         x_sphere_16 = self.get_sphere_feature(x_block16, pix, pix_sphere, 16)
-        
-        x_sphere_8 = self.get_sphere_feature(x_block8, pix, pix_sphere, 8)
-       
-        x_sphere_4 = self.get_sphere_feature(x_block4, pix, pix_sphere, 4)
-       
-        x_sphere_2 = self.get_sphere_feature(x_block2, pix, pix_sphere, 2)
-       
-        x_sphere_1 = self.get_sphere_feature(x_block1, pix, pix_sphere, 1)
-       
+        x_sphere_8  = self.get_sphere_feature(x_block8,  pix, pix_sphere, 8)
+        x_sphere_4  = self.get_sphere_feature(x_block4,  pix, pix_sphere, 4)
+        x_sphere_2  = self.get_sphere_feature(x_block2,  pix, pix_sphere, 2)
+        x_sphere_1  = self.get_sphere_feature(x_block1,  pix, pix_sphere, 1)
+
         x_1_16 = self.up16(x_sphere_32, x_sphere_16)
         x_1_8 = self.up8(x_1_16, x_sphere_8)
         x_1_4 = self.up4(x_1_8, x_sphere_4)
         x_1_2 = self.up2(x_1_4, x_sphere_2)
         x_1_1 = self.up1(x_1_2, x_sphere_1)
-
-     
 
         return {
             "1_1": x_1_1,
@@ -252,18 +261,16 @@ class UNet2DSphere(nn.Module):
         basemodel_name = "tf_efficientnet_b7_ns"
         num_features = 2560
 
-        print("Loading base model ()...".format(basemodel_name), end="")
+        print(f"Loading base model ({basemodel_name})...", end="")
         basemodel = torch.hub.load(
             "rwightman/gen-efficientnet-pytorch", basemodel_name, pretrained=True
         )
         print("Done.")
 
-        # Remove last layer
         print("Removing last two layers (global_pool & classifier).")
         basemodel.global_pool = nn.Identity()
         basemodel.classifier = nn.Identity()
 
-        # Building Encoder-Decoder model
         print("Building Encoder-Decoder model..", end="")
         m = cls(basemodel, num_features=num_features, **kwargs)
         print("Done.")
