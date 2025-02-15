@@ -42,8 +42,9 @@ Below is a summary of the modifications introduced in **this fork** to support a
      - Converting `color.png` to `color.jpg`
 
 4. **Random Fourier Features Positional Encoding**  
-   - **New File:** `scenerf/models/pe_rff.py`  
-   - Implements **Random Fourier Features** for positional encoding, providing an alternative to standard sinusoidal or learned encodings.
+   - **New File:** `scenerf/models/pe_rff.py`
+   - **Modified Files:** `scenerf/models/scenerf_bf.py` (to implement rff positional encoding).
+   - Implements **Random Fourier Features** for positional encoding, providing an alternative to standard positional encodings.
 
 5. **Hierarchical Sampling**  
    - **Modified Files:** `scenerf/scripts/train_bundlefusion.py` (added a `--n_pts_hier` argument) and `scenerf/models/scenerf_bf.py` (to implement hierarchical sampling).
