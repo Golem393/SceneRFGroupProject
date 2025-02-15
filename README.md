@@ -63,8 +63,10 @@ Below is a summary of the modifications introduced in **this fork** to support a
    - Allows specifying the number of points for hierarchical sampling directly from the command line.
    - Probabilistic sampling could sometimes overly concentrate on specific surface areas, leading to an imbalanced focus. Hierarchical sampling refines the uniform sampling points, ensuring a more even distribution near surfaces and improving overall reconstruction quality.
 
-These additions are meant to expand SceneRF’s usability and are not part of the official publication.
-
+6. **Training and Evaluation Bash Scripts**
+   - **New File:** `train_eval_bash_scripts/train_bundlefusion_scaled_down.sh` (to train the model with scaled down configuration)
+   - **New File:** `train_eval_bash_scripts/eval_bundlefusion_scaled_down.sh` (to evaluate the model)
+   - Change paths in the bash scripts accordingly.
 ---
 
 <div align='center'>
