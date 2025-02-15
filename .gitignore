@@ -13,8 +13,6 @@ venv/
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
 
-
-
 # IDEs
 # PyCharm
 .idea/
@@ -28,13 +26,11 @@ venv/
 # All .zip files
 *.zip
 
-# Dataset directory and all its subdirectories
+# Dataset directory
 dataset/
 
 # Logs directory
 logs/
 
-# Recon Dir
+# Reconstruciton directory
 evaluation/
-
-evaluation_results/

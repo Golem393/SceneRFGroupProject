@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
+@click.option('--dataset', default='bf', help='bf or tum_rgbd dataset to train on')
 @click.option('--logdir', default='', help='log directory')
 @click.option('--root', default='', help='path to dataset folder')
 @click.option('--bs', default=1, help='Batch size')
@@ -59,7 +60,7 @@ logger = logging.getLogger(__name__)
 @click.option('--frame_interval', default=2, help='interval between frames in a sequence')
 
 def main(
-        root,
+        dataset, root,
         bs, n_gpus, n_workers_per_gpu,
         exp_prefix, pretrained_exp_name,
         logdir, enable_log,
@@ -93,6 +94,7 @@ def main(
     # max_epochs = 20
 
     data_module = BundlefusionDM(
+        dataset=dataset,
         root=root,
         batch_size=int(bs / n_gpus),
         num_workers=int(n_workers_per_gpu),
