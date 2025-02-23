@@ -13,8 +13,6 @@ venv/
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
 
-
-
 # IDEs
 # PyCharm
 .idea/
@@ -24,3 +22,15 @@ venv/
 
 # MacOS system files
 .DS_Store
+
+# All .zip files
+*.zip
+
+# Dataset directory
+dataset/
+
+# Logs directory
+logs/
+
+# Reconstruciton directory
+evaluation/
