@@ -19,7 +19,7 @@ This project was completed as a part of the **Machine Learning for 3D Geometry (
 
 Implemented **Random Fourier Features positional encoding** and **Hierarchical Sampling** (alongside existing sampling techniques) to significantly enhance **novel depths synthesis, novel views synthesis, and scene reconstruction** in SceneRF. These improvements yield better performance, as shown in the following table:
 
-<img src="assets/bf_results.png">
+<img src="assets/outputResults.png">
 
 - The **best results** are highlighted in **orange**, while the **second-best** results are in **yellow**.
 - **Original results** are taken from the SceneRF paper.
