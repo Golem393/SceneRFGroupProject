@@ -19,12 +19,11 @@ This project was completed as a part of the **Machine Learning for 3D Geometry (
 
 Implemented **Random Fourier Features positional encoding** and **Hierarchical Sampling** (alongside existing sampling techniques) to significantly enhance **novel depths synthesis, novel views synthesis, and scene reconstruction** in SceneRF. These improvements yield better performance, as shown in the following table:
 
-<img src="assets/bf_results.png">
+<img src="assets/outputResults.png">
 
-- The **best results** are highlighted in **orange**, while the **second-best** results are in **yellow**.
+- The **best results** are highlighted with **bold** font.
 - **Original results** are taken from the SceneRF paper.
 - **Scaled-down results** correspond to a scaled-down model using the configuration in `train_eval_bash_scripts/train_bundlefusion_scaled_down.sh`.
-- We will update the README soon with **TUM_RGBD results**.
 
 ### **Additional Modifications**
 Below is a summary of the modifications introduced in **this fork** to support additional features and datasets. **All credit for the original work goes to the original authors.**
